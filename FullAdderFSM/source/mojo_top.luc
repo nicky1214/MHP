@@ -1,0 +1,56 @@
+module mojo_top (
+    input clk,              // 50MHz clock
+    input rst_n,            // reset button (active low)
+    output led [8],         // 8 user controllable LEDs
+    output spi_miso,        // AVR SPI MISO
+    output spi_channel [4], // AVR general purpose pins (used by default to select ADC channel)
+    output avr_rx,          // AVR RX (FPGA TX)
+    output io_led [3][8],   // LEDs on IO Shield
+    output io_seg [8],      // 7-segment LEDs on IO Shield
+    output io_sel [4],      // Digit select on IO Shield
+    input io_dip [3][8],
+    input s,
+    input cout,
+    output a,
+    output b,
+    output cin
+  ) {
+  
+  sig rst;                  // reset signal
+  
+  .clk(clk){
+    // The reset conditioner is used to synchronize the reset signal to the FPGA
+    // clock. This ensures the entire FPGA comes out of reset at the same time.
+    reset_conditioner reset_cond;
+     .rst(rst){
+      fulladder_FSM fulladder_FSM;
+      }     
+    }  
+  
+  always {
+    reset_cond.in = ~rst_n; // input raw inverted reset signal
+    rst = reset_cond.out;   // conditioned reset
+    
+    led = fulladder_FSM.state_indicator;
+    io_led[0] = 8x{fulladder_FSM.cin};
+    io_led[1] = 8x{fulladder_FSM.b};
+    io_led[2] = 8x{fulladder_FSM.a};
+    
+    a = fulladder_FSM.a;
+    b = fulladder_FSM.b;
+    cin = fulladder_FSM.cin;
+    fulladder_FSM.s = s;
+    fulladder_FSM.cout = cout;
+    fulladder_FSM.autotoggle = io_dip[2][0];
+    fulladder_FSM.man_a = io_dip[0][2];
+    fulladder_FSM.man_b = io_dip[0][1];
+    fulladder_FSM.man_cin = io_dip[0][0];
+    
+    spi_miso = bz;          // not using SPI
+    spi_channel = bzzzz;    // not using flags
+    avr_rx = bz;            // not using serial port
+    
+    io_seg = 8hff;          // turn segments off
+    io_sel = 4hf;           // select no digits
+  }
+}

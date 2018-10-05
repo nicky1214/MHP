@@ -1,0 +1,8 @@
+INTSTYLE=pa
+INFILE=D:\mojo\FullAdderFSM\work\planAhead\FullAdderFSM\FullAdderFSM.runs\impl_1\mojo_top_0_routed.ncd
+OUTFILE=D:\mojo\FullAdderFSM\work\planAhead\FullAdderFSM\FullAdderFSM.runs\impl_1\mojo_top_0.bit
+FAMILY=Spartan6
+PART=xc6slx9-2tqg144
+WORKINGDIR=D:\mojo\FullAdderFSM\work\planAhead\FullAdderFSM\FullAdderFSM.runs\impl_1
+LICENSE=WebPack
+USER_INFO=211596615_0_0_558

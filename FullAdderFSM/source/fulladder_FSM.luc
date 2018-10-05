@@ -1,0 +1,157 @@
+module fulladder_FSM (
+    input clk,  // clock
+    input rst,  // reset
+    output a, //output from mojo to input gate a
+    output b, //output from mojo to input gate b
+    output cin, //output from mojo to input gate cin
+    input s, //SUM LED (green)
+    input cout, // CarryOut LED (yellow)
+    output state_indicator [8], // the 9 stateS
+    input autotoggle, // io_dip toggle to change from manual to auto testing
+    input man_a, //manual input for a
+    input man_b, //manual input for b
+    input man_cin //manual input for cin
+  ) {
+
+  .clk(clk) {
+    .rst(rst) {
+    dff count[27](.clk(clk),.rst(rst));
+  fsm state= {OOO, OOI, OIO, OII, IOO, IOI, IIO, III, ERROR}; //8 cases of truth table with one error state
+    }
+  }
+  
+  always {
+    count.d = count.q + 1;  //next state of clock
+    a = 0;    //initialise a as 0
+    b = 0;    // initialise b as 0
+    cin = 0;    //initialise cin as 0
+    state_indicator = 8h00;    //initialise led at 0 (convert hex to binary to see the 8-bit light configuration)
+    
+    if (autotoggle == 1) { //FSM auto tester
+    case (state.q) {    
+    
+      state.OOO:  // a b cin | cout sum
+      a = 0;      // 0 0  0  |  0    0
+      b = 0;
+      cin = 0;
+      state_indicator = 8h00;
+      
+
+      if (count.q[26] == 1) {//when clk is 1
+        if (cout != 0 || s != 0) { //if cout and sum != 0
+          state.d = state.ERROR;   // go to error state
+            }
+        else {state.d = state.OOI; //go to next state test
+         }
+        }
+          
+      state.OOI:  // a b cin | cout sum
+      a = 0;      // 0 0  1  |  0    1
+      b = 0;
+      cin = 1;
+      state_indicator= 8h01;
+      if (count.q[26] == 0) { //when clk is 0
+        if (cout != 0 || s != 1) {
+          state.d = state.ERROR;
+            }
+        else {state.d = state.OIO;
+          }
+        }
+      
+      state.OIO:  // a b cin  | cout sum
+      a = 0;        // 0 1  0   |  0    1
+      b = 1;
+      cin = 0;
+      state_indicator = 8h02;
+      if (count.q[26] == 1) {//when clk is 1
+        if (cout != 0 || s != 1) {
+          state.d = state.ERROR;
+          }
+         else {state.d = state.OII;
+          } 
+        }
+      
+      state.OII:  // a b cin | cout sum
+      a = 0;       // 0 1  1  |  1    0
+      b = 1;
+      cin = 1;
+      state_indicator=8h03;
+      if (count.q[26] == 0) {//when clk is 0
+        if (cout != 1 || s != 0) {
+          state.d = state.ERROR;
+            }
+        else {state.d = state.IOO;
+          }
+        }
+        
+      state.IOO:  // a b cin | cout sum
+      a = 1;       // 1 0  0  |  0    1
+      b = 0;
+      cin = 0;
+      state_indicator = 8h04;
+      if (count.q[26] == 1) {//when clk is 1
+        if (cout != 0 || s != 1) {
+          state.d = state.ERROR;
+            }
+        else {state.d = state.IOI;
+          }
+        }
+          
+      state.IOI:  // a b cin | cout sum
+      a = 1;      // 1 0  1  |  1    0 
+      b = 0;
+      cin = 1;
+      state_indicator=8h05;
+      if (count.q[26] == 0) {//when clk is 0
+        if (cout != 1 || s != 0) {
+          state.d = state.ERROR;
+            }
+        else {state.d = state.IIO;
+          }
+        }
+
+          
+      state.IIO:  // a b cin | cout sum
+      a = 1;        // 1 1  0  |  1    0
+      b = 1;
+      cin = 0;
+      state_indicator=8h06;
+      if (count.q[26] == 1) {//when clk is 1
+        if (cout!= 1 || s !=0) {
+          state.d = state.ERROR;
+            }
+        else {state.d = state.III;
+             
+          }
+        }
+       
+                  
+      state.III:  // a b cin | cout sum
+      a = 1;        // 1 1  1  |  1    1
+      b = 1;
+      cin = 1;
+      state_indicator=8h07;
+      if (count.q[26] == 0) {//when clk is 0
+        if (cout != 1 && s != 1) {
+          state.d = state.ERROR;
+            }
+        else {state.d = state.OOO;
+          }
+        }
+         
+                 
+      state.ERROR: // Error state when the logic gate is not 
+      a = 0;       // giving the right output for sum and carry
+      b = 0;
+      cin = 0;
+      state_indicator = 8hff;
+      state.d = state.ERROR;      
+      }
+    }
+      else{ //manual tester
+      a = man_a;
+      b = man_b;
+      cin = man_cin;      
+    }
+}
+}
